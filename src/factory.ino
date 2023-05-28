@@ -14,29 +14,10 @@
 #include <Arduino.h>
 #include "OneButton.h"
 
-// #define USING_2_1_INC_CST820     1           //  Full circle 2.1 inches using CST820 touch screen
-// #define USING_2_8_INC_GT911      1           //  Full circle 2.8 inches using GT911 touch screen
-// #define USING_2_1_INC_FT3267     1           //  Half circle 2.1 inches use FT3267 touch screen
-
-
-#if defined(USING_2_1_INC_FT3267)
-#include "ft3267.h"
-#endif
-#if defined(USING_2_1_INC_CST820)
 #define TOUCH_MODULES_CST_SELF
 #include "TouchLib.h"
 TouchLib touch(Wire, IIC_SDA_PIN, IIC_SCL_PIN, CTS820_SLAVE_ADDRESS);
-#elif defined(USING_2_8_INC_GT911)
-#define TOUCH_MODULES_GT911
-#include "TouchLib.h"
-TouchLib touch(Wire, IIC_SDA_PIN, IIC_SCL_PIN, GT911_SLAVE_ADDRESS1);
-#endif
 
-
-
-#if !defined(USING_2_1_INC_CST820) && !defined(USING_2_8_INC_GT911) && !defined(USING_2_1_INC_FT3267)
-#error "Please define the size of the screen and open the macro definition at the top of the sketch"
-#endif
 
 typedef struct {
     uint8_t cmd;
@@ -44,7 +25,6 @@ typedef struct {
     uint8_t databytes; // No of data in data; bit 7 = delay after set; 0xFF = end of cmds.
 } lcd_init_cmd_t;
 
-#if defined(USING_2_1_INC_CST820) || defined(USING_2_1_INC_FT3267)
 DRAM_ATTR static const lcd_init_cmd_t st_init_cmds[] = {
     {0xFF, {0x77, 0x01, 0x00, 0x00, 0x10}, 0x05},
     {0xC0, {0x3b, 0x00}, 0x02},
@@ -90,55 +70,6 @@ DRAM_ATTR static const lcd_init_cmd_t st_init_cmds[] = {
     {0x29, {0x00}, 0x80},
     {0, {0}, 0xff}
 };
-#elif defined(USING_2_8_INC_GT911)
-DRAM_ATTR static const lcd_init_cmd_t st_init_cmds[] = {
-    {0xFF, {0x77, 0x01, 0x00, 0x00, 0x13}, 0x05},
-    {0xEF, {0x08}, 0x01},
-    {0xFF, {0x77, 0x01, 0x00, 0x00, 0x10}, 0x05},
-    {0xC0, {0x3B, 0X00}, 0x02},
-    {0xC1, {0x10, 0x0C}, 0x02},
-    {0xC2, {0x07, 0x0A}, 0x02},
-    {0xC7, {0x00}, 0x01},
-    {0xCC, {0x10}, 0x01},
-    {0xCD, {0x08}, 0x01}, // 用565时屏蔽    666打开
-    {0xb0, {0x05, 0x12, 0x98, 0x0e, 0x0F, 0x07, 0x07, 0x09, 0x09, 0x23, 0x05, 0x52, 0x0F, 0x67, 0x2C, 0x11}, 0x10},
-    {0xb1, {0x0B, 0x11, 0x97, 0x0C, 0x12, 0x06, 0x06, 0x08, 0x08, 0x22, 0x03, 0x51, 0x11, 0x66, 0x2B, 0x0F}, 0x10},
-    {0xFF, {0x77, 0x01, 0x00, 0x00, 0x11}, 0x05},
-    {0xb0, {0x5d}, 0x01},
-    {0xb1, {0x2D}, 0x01},
-    {0xb2, {0x81}, 0x01},
-    {0xb3, {0x80}, 0x01},
-    {0xb5, {0x4E}, 0x01},
-    {0xb7, {0x85}, 0x01},
-    {0xb8, {0x20}, 0x01},
-    {0xc1, {0x78}, 0x01},
-    {0xc2, {0x78}, 0x01},
-    // {0xc3, {0x8c}, 0x01},
-    {0xd0, {0x88}, 0x01},
-    {0xe0, {0x00, 0x00, 0x02}, 0x03},
-    {0xe1, {0x06, 0x30, 0x08, 0x30, 0x05, 0x30, 0x07, 0x30, 0x00, 0x33, 0x33}, 0x0b},
-    {0xe2, {0x11, 0x11, 0x33, 0x33, 0xf4, 0x00, 0x00, 0x00, 0xf4, 0x00, 0x00, 0x00}, 0x0c},
-    {0xe3, {0x00, 0x00, 0x11, 0x11}, 0x04},
-    {0xe4, {0x44, 0x44}, 0x02},
-    {0xe5, {0x0d, 0xf5, 0x30, 0xf0, 0x0f, 0xf7, 0x30, 0xf0, 0x09, 0xf1, 0x30, 0xf0, 0x0b, 0xf3, 0x30, 0xf0}, 0x10},
-    {0xe6, {0x00, 0x00, 0x11, 0x11}, 0x04},
-    {0xe7, {0x44, 0x44}, 0x02},
-    {0xe8, {0x0c, 0xf4, 0x30, 0xf0, 0x0e, 0xf6, 0x30, 0xf0, 0x08, 0xf0, 0x30, 0xf0, 0x0a, 0xf2, 0x30, 0xf0}, 0x10},
-    {0xe9, {0x36}, 0x01},
-    {0xeb, {0x00, 0x01, 0xe4, 0xe4, 0x44, 0x88, 0x40}, 0x07},
-    {0xed, {0xff, 0x10, 0xaf, 0x76, 0x54, 0x2b, 0xcf, 0xff, 0xff, 0xfc, 0xb2, 0x45, 0x67, 0xfa, 0x01, 0xff}, 0x10},
-    {0xef, {0x08, 0x08, 0x08, 0x45, 0x3f, 0x54}, 0x06},
-    {0xFF, {0x77, 0x01, 0x00, 0x00, 0x00}, 0x05},
-
-    {0x11, {0x00}, 0x80},
-    {0x3a, {0x66}, 0x01},
-    {0x36, {0x08}, 0x01},
-    {0x35, {0x00}, 0x01},
-    {0x29, {0x00}, 0x80},
-    {0, {0}, 0xff}
-};
-#endif
-
 
 XL9535 xl;
 OneButton button(0, true);
@@ -159,18 +90,15 @@ uint8_t touchAddress = 0;
 
 const char *getTouchAddr()
 {
-    if (touchAddress == FT5x06_ADDR) {
-        return "FT3267";
-    } else if (touchAddress == CST820_ADDR) {
-        return "CST820";
-    } else if (touchAddress == GT911_ADDR) {
-        return "GT911";
-    }
-#ifdef USING_2_1_INC_CST820
+    // if (touchAddress == FT5x06_ADDR) {
+    //     return "FT3267";
+    // } else if (touchAddress == CST820_ADDR) {
+    //     return "CST820";
+    // } else if (touchAddress == GT911_ADDR) {
+    //     return "GT911";
+    // }
+
     return "CST820";
-#else
-    return "UNKONW";
-#endif
 }
 
 void scanDevices(void)
@@ -233,21 +161,7 @@ static void lv_touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data
 
     static uint16_t lastX, lastY;
     touch_point_t p = {0};
-#if defined(USING_2_1_INC_FT3267)
 
-    uint8_t touch_points_num;
-    ft3267_read_pos(&touch_points_num, &p.x, &p.y);
-    data->point.x = p.x;
-    data->point.y = p.y;
-    if (p.x != lastX  || p.y != lastY) {
-        lastX = p.x;
-        lastY = p.y;
-        data->state = LV_INDEV_STATE_PR;
-    } else {
-        data->state = LV_INDEV_STATE_REL;
-    }
-
-#elif defined(USING_2_1_INC_CST820) || defined(USING_2_8_INC_GT911)
     if (touch.read()) {
         TP_Point t = touch.getPoint(0);
         data->point.x = p.x = t.x;
@@ -256,7 +170,7 @@ static void lv_touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data
     } else {
         data->state = LV_INDEV_STATE_REL;
     }
-#endif
+
     lv_msg_send(MSG_TOUCH_UPDATE, &p);
 }
 
@@ -266,29 +180,13 @@ void waitInterruptReady()
 
     uint32_t timeout = millis() + 500;
 
-// The touch interrupt of CST820 is a high and low pulse, it is not fixed, there will be a low level every ~10 milliseconds interval
-#ifdef USING_2_1_INC_CST820
+    // The touch interrupt of CST820 is a high and low pulse, it is not fixed, there will be a low level every ~10 milliseconds interval
     while (timeout > millis()) {
         while (!digitalRead(TP_INT_PIN)) {
             delay(20);
             timeout = millis() + 500;
         }
     }
-#else
-    //Wait for the GT911 interrupt signal to be ready
-    while (!digitalRead(TP_INT_PIN)) {
-#if defined(USING_2_8_INC_GT911)
-        if (timeout <  millis()) {
-            Serial.println("timeout !");
-            esp_restart();
-        }
-        touch.read();
-#endif
-        delay(10);
-    }
-
-#endif
-
 }
 
 // LilyGo  T-RGB  control backlight chip has 16 levels of adjustment range
@@ -343,35 +241,17 @@ void setup()
 
     SD_init();
 
-#ifdef USING_2_8_INC_GT911
-    //Reset GT911
-    xl.pinMode(TP_RES_PIN, OUTPUT);
-    pinMode(TP_INT_PIN, OUTPUT);
-    digitalWrite(TP_INT_PIN, LOW);
-    xl.digitalWrite(TP_RES_PIN, LOW);
-    delayMicroseconds(120);
-    xl.digitalWrite(TP_RES_PIN, HIGH);
-    delay(8);
-    pinMode(TP_INT_PIN, INPUT);
-
-    waitInterruptReady();
-#else
     delay(100);
     xl.digitalWrite(TP_RES_PIN, LOW);
     delay(300);
     xl.digitalWrite(TP_RES_PIN, HIGH);
     delay(300);
     pinMode(TP_INT_PIN, INPUT);
-#endif
 
     // Scanning I2C cannot get the device address of CST820, it is a non-standard I2C device
     scanDevices();
 
-#if defined(USING_2_1_INC_FT3267)
-    ft3267_init(Wire);
-#elif defined(USING_2_8_INC_GT911) || defined(USING_2_1_INC_CST820)
     touch.init();
-#endif
 
     tft_init();
     esp_lcd_panel_handle_t panel_handle = NULL;
@@ -524,7 +404,6 @@ void loop()
         Millis = millis();
     }
 
-#ifndef USING_2_1_INC_CST820
     bool touched = digitalRead(TP_INT_PIN) == LOW;
     if (touched) {
         lastStatus = touched;
@@ -533,7 +412,6 @@ void loop()
         lastStatus = false;
         lv_msg_send(MSG_TOUCH_INT_UPDATE, &touched);
     }
-#endif
 }
 
 void lcd_send_data(uint8_t data)
@@ -764,14 +642,6 @@ void deep_sleep(void)
     WiFi.disconnect();
 
     Serial.println("DEEP SLEEP !!!!");
-
-
-#ifdef USING_2_8_INC_GT911
-    // After setting touch to sleep, touch wakeup cannot be used, it needs to be changed to button wakeup, or timing wakeup
-    // pinMode(TP_INT_PIN, OUTPUT);
-    // digitalWrite(TP_INT_PIN, LOW); //Before touch to set sleep, it is necessary to set INT to LOW
-    // touch.enableSleep();
-#endif
 
     pinMode(TP_INT_PIN, INPUT);
     waitInterruptReady();

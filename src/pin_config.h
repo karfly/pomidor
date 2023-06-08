@@ -55,3 +55,6 @@
 #define LCD_CLK_PIN  5
 #define LCD_RST_PIN  6
 #define SD_CS_PIN    7
+
+// buzzer
+#define BUZZER_PIN 38

@@ -12,6 +12,8 @@
 #include "pin_config.h"
 #include <Arduino.h>
 #include "OneButton.h"
+
+#include "pitches.h"
 #include "pomidor_ui.h"
 
 #define TOUCH_MODULES_CST_SELF
@@ -223,7 +225,7 @@ void setup()
     // battery voltage setup
     pinMode(BAT_VOLT_PIN, ANALOG);
 
-    Wire.begin(IIC_SDA_PIN, IIC_SCL_PIN);
+    // Wire.begin(IIC_SDA_PIN, IIC_SCL_PIN);
 
     xl.begin();
 
@@ -245,7 +247,7 @@ void setup()
     pinMode(TP_INT_PIN, INPUT);
 
     // Scanning I2C cannot get the device address of CST820, it is a non-standard I2C device
-    scanDevices();
+    // scanDevices();
 
     touch.init();
 
@@ -347,9 +349,9 @@ void setup()
 
     // const lv_img_dsc_t *photo[] = { &photo2, &photo4, &photo5};
 
-    button.attachClick([]() {
-        click = true;
-    });
+    // button.attachClick([]() {
+    //     click = true;
+    // });
 
     //Wait for the GT911 interrupt signal to be ready
     waitInterruptReady();
@@ -367,6 +369,13 @@ void setup()
     // start UI
     pomidor_ui = new PomidorUI();
     Serial.println("Finished setup");
+
+    // buzzer
+    // pinMode(BUZZER_PIN, OUTPUT);  // TODO: when OUTPUT – screen doesn't work
+    // digitalWrite(BUZZER_PIN, LOW);
+    // pinMode(SD_D0_PIN, OUTPUT);
+    // digitalWrite(SD_D0_PIN, LOW);
+
 }
 
 bool lastStatus = false;
@@ -380,7 +389,6 @@ void loop()
 
     unsigned long time = millis();
     if (time - Millis > 50) {
-        Serial.println(time - Millis);
         lv_msg_send(MSG_TIMER_UPDATE, &time);
         Millis = millis();
     }

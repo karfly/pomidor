@@ -11,6 +11,7 @@
 #include "lvgl.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "main.cpp"
 
 
 #include "timer.h"
@@ -130,6 +131,19 @@ public:
         _init_ui_next_interval_button();
         _init_ui_play_pause_button();
         _init_gifs();
+
+        _ui_deep_sleep_button = lv_btn_create(_ui_screen);
+
+        lv_obj_align(_ui_next_interval_button, LV_ALIGN_CENTER, 0, 100);
+
+        // event handler
+        lv_obj_add_event_cb(
+            _ui_deep_sleep_button,
+            PomidorUI::_ui_deep_sleep_button_handler,
+            LV_EVENT_ALL,
+            this
+        );
+
     }
 
     void _init_ui_screen() {
@@ -227,7 +241,6 @@ public:
         lv_style_set_text_font(&tap_to_start_label_style, TAP_TO_START_LABEL_FONT);
 
         lv_obj_add_style(_ui_tap_to_start_label, &tap_to_start_label_style, LV_PART_MAIN);
-
 
         // clock
         _ui_timer_clock = lv_timer_create(PomidorUI::_ui_timer_update_handler, 250, this);
@@ -386,6 +399,7 @@ private:
     static void _ui_next_interval_button_handler(lv_event_t *event);
     static void _ui_play_pause_button_handler(lv_event_t *event);
     static void _play_music(lv_event_t *event);
+    static void _ui_deep_sleep_button_handler(lv_event_t *event);
 
     // utils
     static std::string format_time(unsigned long n_ms);
@@ -408,11 +422,14 @@ private:
     lv_obj_t *_ui_next_interval_button = nullptr;
     lv_obj_t *_ui_play_pause_button = nullptr;
 
-    // gifs
+    // - gifs
     lv_obj_t *_ui_gif = nullptr;
     // lv_obj_t *_work_gif = nullptr;
     // lv_obj_t *_rest_gif = nullptr;
     // lv_obj_t *_pause_gif = nullptr;
+
+    // deep sleep
+    lv_obj_t *_ui_deep_sleep_button = nullptr;
 };
 
 void PomidorUI::_ui_timer_update_handler(lv_timer_t *timer) {
@@ -457,6 +474,15 @@ void PomidorUI::_ui_play_pause_button_handler(lv_event_t *e) {
 void PomidorUI::_play_music(lv_event_t *e) {
 
 }
+
+void PomidorUI::_ui_deep_sleep_button_handler(lv_event_t *e) {
+    PomidorUI *pomidor_ui = (PomidorUI *)lv_event_get_user_data(e);
+
+    if (lv_event_get_code(e) == LV_EVENT_RELEASED) {
+        Serial.println("Deep sleep button released");
+        deep_sleep();
+    };
+};
 
 // format time in ms to string mm:ss
 std::string PomidorUI::format_time(unsigned long time_ms) {

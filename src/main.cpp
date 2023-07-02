@@ -15,6 +15,7 @@
 
 #include "pitches.h"
 #include "pomidor_ui.h"
+#include "deep_sleep.h"
 
 #define TOUCH_MODULES_CST_SELF
 #include "TouchLib.h"
@@ -85,7 +86,6 @@ bool click = false;
 TaskHandle_t pvCreatedTask;
 
 
-void deep_sleep(void);
 // void SD_init(void);
 void tft_init(void);
 void lcd_cmd(const uint8_t cmd);
@@ -226,8 +226,9 @@ void setup()
     pinMode(BAT_VOLT_PIN, ANALOG);
 
     // Wire.begin(IIC_SDA_PIN, IIC_SCL_PIN);
-
+    Serial.println("xl.begin()");
     xl.begin();
+    Serial.println("xl.begin() done");
 
     uint8_t pin = (1 << PWR_EN_PIN) | (1 << LCD_CS_PIN) | (1 << TP_RES_PIN) | (1 << LCD_SDA_PIN) | (1 << LCD_CLK_PIN) |
                   (1 << LCD_RST_PIN) | (1 << SD_CS_PIN);

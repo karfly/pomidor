@@ -14,6 +14,7 @@
 
 
 #include "timer.h"
+#include "deep_sleep.h"
 
 typedef struct {
     uint16_t x;
@@ -129,6 +130,7 @@ public:
         // TODO: _init_ui_tap_to_start_label();
         _init_ui_next_interval_button();
         _init_ui_play_pause_button();
+        _init_ui_deep_sleep_button();
         _init_gifs();
     }
 
@@ -285,6 +287,27 @@ public:
         );
     }
 
+    void _init_ui_deep_sleep_button() {
+        _ui_deep_sleep_button = lv_btn_create(_ui_screen);
+        lv_obj_align(_ui_deep_sleep_button, LV_ALIGN_CENTER, 0, -120);
+        lv_obj_t* label = lv_label_create(_ui_deep_sleep_button);
+        lv_label_set_text(label, "Deep sleep");
+
+        // event handler
+        lv_obj_add_event_cb(
+            _ui_deep_sleep_button,
+            PomidorUI::_ui_deep_sleep_button_handler,
+            LV_EVENT_ALL,
+            this
+        );
+    }
+
+    void _init_gifs() {
+        _ui_gif = lv_gif_create(_ui_screen);
+        lv_gif_set_src(_ui_gif, &pause_gif);
+        lv_obj_align(_ui_gif, LV_ALIGN_CENTER, 0, -120);
+    }
+
     void _change_ui_state(PomidorUIState new_ui_state) {
         if (_current_ui_state == PomidorUIState::ReadyToStart && new_ui_state == PomidorUIState::Running) {
             _timer->start();
@@ -336,26 +359,6 @@ public:
         _current_ui_state = new_ui_state;
     }
 
-    void _init_gifs() {
-        _ui_gif = lv_gif_create(_ui_screen);
-        lv_gif_set_src(_ui_gif, &pause_gif);
-        lv_obj_align(_ui_gif, LV_ALIGN_CENTER, 0, -120);
-
-        // _work_gif = lv_gif_create(_ui_screen);
-        // lv_gif_set_src(_work_gif, &work_gif);
-        // lv_obj_align(_work_gif, LV_ALIGN_CENTER, 0, -120);
-        // lv_obj_add_flag(_work_gif, LV_OBJ_FLAG_HIDDEN);
-
-        // _rest_gif = lv_gif_create(_ui_screen);
-        // lv_gif_set_src(_rest_gif, &rest_gif);
-        // lv_obj_align(_rest_gif, LV_ALIGN_CENTER, 0, -120);
-        // lv_obj_add_flag(_rest_gif, LV_OBJ_FLAG_HIDDEN);
-
-        // _pause_gif = lv_gif_create(_ui_screen);
-        // lv_gif_set_src(_pause_gif, &pause_gif);
-        // lv_obj_align(_pause_gif, LV_ALIGN_CENTER, 0, -120);
-    }
-
     void _update_ui_timer() {
         const unsigned long remaining_time = _timer->get_remaining_time();
 
@@ -385,6 +388,7 @@ private:
     static void _ui_screen_tap_handler(lv_event_t *event);
     static void _ui_next_interval_button_handler(lv_event_t *event);
     static void _ui_play_pause_button_handler(lv_event_t *event);
+    static void _ui_deep_sleep_button_handler(lv_event_t *event);
     static void _play_music(lv_event_t *event);
 
     // utils
@@ -408,11 +412,11 @@ private:
     lv_obj_t *_ui_next_interval_button = nullptr;
     lv_obj_t *_ui_play_pause_button = nullptr;
 
+    // - system
+    lv_obj_t *_ui_deep_sleep_button = nullptr;
+
     // gifs
     lv_obj_t *_ui_gif = nullptr;
-    // lv_obj_t *_work_gif = nullptr;
-    // lv_obj_t *_rest_gif = nullptr;
-    // lv_obj_t *_pause_gif = nullptr;
 };
 
 void PomidorUI::_ui_timer_update_handler(lv_timer_t *timer) {
@@ -451,6 +455,15 @@ void PomidorUI::_ui_play_pause_button_handler(lv_event_t *e) {
         } else {
             assert(false && "invalid state transition");
         }
+    };
+};
+
+void PomidorUI::_ui_deep_sleep_button_handler(lv_event_t *e) {
+    PomidorUI *pomidor_ui = (PomidorUI *)lv_event_get_user_data(e);
+
+    if (lv_event_get_code(e) == LV_EVENT_RELEASED) {
+        Serial.println("Deep sleep");
+        deep_sleep();
     };
 };
 

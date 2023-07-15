@@ -225,7 +225,7 @@ void setup()
     // battery voltage setup
     pinMode(BAT_VOLT_PIN, ANALOG);
 
-    // Wire.begin(IIC_SDA_PIN, IIC_SCL_PIN);
+    Wire.begin(IIC_SDA_PIN, IIC_SCL_PIN);
     Serial.println("xl.begin()");
     xl.begin();
     Serial.println("xl.begin() done");

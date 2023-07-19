@@ -1,5 +1,5 @@
+
 #include "HTTPClient.h"
-#include "SD_MMC.h"
 #include "WiFi.h"
 #include "Wire.h"
 #include "XL9535_driver.h"
@@ -7,13 +7,11 @@
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_rgb.h"
 #include "esp_lcd_panel_vendor.h"
-// #include "ui.h"
 #include "lvgl.h"
 #include "pin_config.h"
 #include <Arduino.h>
 #include "OneButton.h"
 
-#include "pitches.h"
 #include "pomidor_ui.h"
 #include "deep_sleep.h"
 
@@ -359,7 +357,6 @@ void setup()
 
     lv_task_handler();
 
-
     pinMode(backlightPin, OUTPUT);
     //LilyGo T-RGB control backlight chip has 16 levels of adjustment range
     for (int i = 0; i < 16; ++i) {
@@ -367,15 +364,16 @@ void setup()
         delay(30);
     }
 
+    // buzzer
+    pinMode(BUZZER_PIN, OUTPUT);
+    ledcSetup(BUZZER_LED_CHANNEL, 1000, 8);
+    ledcWrite(BUZZER_LED_CHANNEL, 255);  // ledc duty cycle
+    setToneChannel(BUZZER_LED_CHANNEL);
+    Serial.println("Buzzer intialized");
+
     // start UI
     pomidor_ui = new PomidorUI();
     Serial.println("Finished setup");
-
-    // buzzer
-    // pinMode(BUZZER_PIN, OUTPUT);  // TODO: when OUTPUT – screen doesn't work
-    // digitalWrite(BUZZER_PIN, LOW);
-    // pinMode(SD_D0_PIN, OUTPUT);
-    // digitalWrite(SD_D0_PIN, LOW);
 
 }
 
@@ -646,8 +644,8 @@ void deep_sleep(void)
     Serial.println("Touch release!!!");
 
     // If the SD card is initialized, it needs to be unmounted.
-    if (SD_MMC.cardSize())
-        SD_MMC.end();
+    // if (SD_MMC.cardSize())
+    //     SD_MMC.end();
 
     //turn off blacklight
     for (int i = 16; i >= 0; --i) {

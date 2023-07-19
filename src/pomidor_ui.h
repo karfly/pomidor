@@ -15,6 +15,7 @@
 
 #include "timer.h"
 #include "deep_sleep.h"
+#include "music.h"
 
 typedef struct {
     uint16_t x;
@@ -92,17 +93,7 @@ enum class PomidorUIState {
 
 TaskHandle_t BuzzerTaskHandle = NULL;
 
-void buzzer_task(void *pvParameters) {
-    // tone(BUZZER_PIN, 1000);
-    // delay(1000);
-    // noTone(BUZZER_PIN);
-    // delay(1000);
-    // tone(BUZZER_PIN, 1000);
-    // delay(1000);
-    // noTone(BUZZER_PIN);
-    // delay(1000);
-    vTaskDelete(NULL);
-}
+
 
 
 
@@ -119,9 +110,7 @@ public:
         // ui
         _init_ui();
 
-        // buzzer
-        // xTaskCreate(buzzer_task, "buzzer_task", 2048, NULL, tskIDLE_PRIORITY, NULL);
-        // Serial.println("buzzer_task created");
+        _play_audio();
     }
 
     void _init_ui() {
@@ -130,7 +119,7 @@ public:
         // TODO: _init_ui_tap_to_start_label();
         _init_ui_next_interval_button();
         _init_ui_play_pause_button();
-        _init_ui_deep_sleep_button();
+        // _init_ui_deep_sleep_button();
         _init_gifs();
     }
 
@@ -329,10 +318,12 @@ public:
                 _current_interval_type = PomidorIntervalType::Rest;
                 _timer = new Timer(REST_INTERVAL_DURATION);
                 lv_obj_set_style_arc_color(_ui_timer_circle, TIMER_CIRCLE_REST_COLOR, LV_PART_INDICATOR);
+                _play_audio();
             } else {
                 _current_interval_type = PomidorIntervalType::Work;
                 _timer = new Timer(WORK_INTERVAL_DURATION);
                 lv_obj_set_style_arc_color(_ui_timer_circle, TIMER_CIRCLE_WORK_COLOR, LV_PART_INDICATOR);
+                _play_audio();
             }
 
             lv_obj_add_flag(_ui_play_pause_button, LV_OBJ_FLAG_HIDDEN);
@@ -389,7 +380,10 @@ private:
     static void _ui_next_interval_button_handler(lv_event_t *event);
     static void _ui_play_pause_button_handler(lv_event_t *event);
     static void _ui_deep_sleep_button_handler(lv_event_t *event);
-    static void _play_music(lv_event_t *event);
+
+    // audio
+    void _play_audio();
+    static void _play_audio_fn(void *pvParameters);
 
     // utils
     static std::string format_time(unsigned long n_ms);
@@ -467,8 +461,36 @@ void PomidorUI::_ui_deep_sleep_button_handler(lv_event_t *e) {
     };
 };
 
-void PomidorUI::_play_music(lv_event_t *e) {
 
+void PomidorUI::_play_audio() {
+    xTaskCreate(this->_play_audio_fn, "audio", 2048, NULL, tskIDLE_PRIORITY, NULL);
+    Serial.println("buzzer_task created");
+}
+
+void PomidorUI::_play_audio_fn(void *pvParameters) {
+    // while(1) {
+    //     tone(BUZZER_PIN, 1000);
+    //     delay(1000);
+    //     noTone(BUZZER_PIN);
+    //     delay(1000);
+    // }
+
+    for (int note = 0; note < MELODY_SIZE; note++) {
+        //to calculate the note duration, take one second divided by the note type.
+        //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
+        int duration = 1000 / MELODY_DURATIONS[note];
+        tone(BUZZER_PIN, MELODY[note], duration);
+
+        //to distinguish the notes, set a minimum time between them.
+        //the note's duration + 30% seems to work well:
+        int pauseBetweenNotes = duration * 1.30;
+        delay(pauseBetweenNotes);
+
+        //stop the tone playing:
+        noTone(BUZZER_PIN);
+    }
+
+    vTaskDelete(NULL);
 }
 
 // format time in ms to string mm:ss

@@ -57,4 +57,5 @@
 #define SD_CS_PIN    7
 
 // buzzer
-#define BUZZER_PIN 38
+#define BUZZER_PIN 40
+#define BUZZER_LED_CHANNEL 0
